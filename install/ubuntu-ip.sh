@@ -52,8 +52,8 @@ generate_hex() {
 # Function to validate broker
 validate_broker() {
     local broker=$1
-    local valid_brokers="fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,definedge,dhan,dhan_sandbox,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,jainamxts,kotak,motilal,mstock,paytm,pocketful,samco,shoonya,tradejini,upstox,wisdom,zebu,zerodha"
-    if [[ $valid_brokers == *"$broker"* ]]; then
+    local valid_brokers="fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,definedge,deltaexchange,dhan,dhan_sandbox,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,jainamxts,kotak,motilal,mstock,nubra,paytm,pocketful,rmoney,samco,shoonya,tradejini,upstox,wisdom,zebu,zerodha"
+    if [[ ",$valid_brokers," == *",$broker,"* ]]; then
         return 0
     else
         return 1
@@ -63,8 +63,8 @@ validate_broker() {
 # Function to check XTS broker
 is_xts_broker() {
     local broker=$1
-    local xts_brokers="fivepaisaxts,compositedge,ibulls,iifl,jainamxts,wisdom"
-    if [[ $xts_brokers == *"$broker"* ]]; then
+    local xts_brokers="fivepaisaxts,compositedge,ibulls,iifl,jainamxts,rmoney,wisdom"
+    if [[ ",$xts_brokers," == *",$broker,"* ]]; then
         return 0
     else
         return 1
@@ -208,7 +208,7 @@ log_message "----------------------------------------" "$BLUE"
 
 # Get broker name
 while true; do
-    log_message "\nValid brokers: fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,dhan,dhan_sandbox,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,jainamxts,kotak,motilal,mstock,paytm,pocketful,samco,shoonya,tradejini,upstox,wisdom,zebu,zerodha" "$BLUE"
+    log_message "\nValid brokers: fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,definedge,deltaexchange,dhan,dhan_sandbox,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,jainamxts,kotak,motilal,mstock,nubra,paytm,pocketful,rmoney,samco,shoonya,tradejini,upstox,wisdom,zebu,zerodha" "$BLUE"
     read -p "Enter your broker name: " BROKER_NAME
     if validate_broker "$BROKER_NAME"; then
         break
@@ -268,7 +268,8 @@ check_status "Failed to update system"
 # Install essential packages
 log_message "Installing essential packages..." "$BLUE"
 wait_for_apt
-sudo apt-get install -y python3 python3-venv python3-pip python3-full git ufw fail2ban snapd software-properties-common
+sudo apt-get install -y python3 python3-venv python3-pip python3-full git ufw fail2ban snapd software-properties-common \
+    libopenblas0 libgomp1 libgfortran5
 check_status "Failed to install packages"
 
 # Install uv using snap for faster package installation
@@ -388,9 +389,22 @@ User=www-data
 Group=www-data
 WorkingDirectory=$BASE_PATH
 Environment="PATH=$VENV_PATH/bin"
-ExecStart=$VENV_PATH/bin/gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:80 --timeout 120 app:app
+# Environment variables for numba/scipy support
+Environment="TMPDIR=$BASE_PATH/tmp"
+Environment="NUMBA_CACHE_DIR=$BASE_PATH/tmp/numba_cache"
+Environment="LLVMLITE_TMPDIR=$BASE_PATH/tmp"
+Environment="MPLCONFIGDIR=$BASE_PATH/tmp/matplotlib"
+# Thread limits for OpenBLAS/NumPy to prevent RLIMIT_NPROC issues
+# See: https://github.com/marketcalls/openalgo/issues/822
+Environment="OPENBLAS_NUM_THREADS=2"
+Environment="OMP_NUM_THREADS=2"
+Environment="MKL_NUM_THREADS=2"
+Environment="NUMEXPR_NUM_THREADS=2"
+Environment="NUMBA_NUM_THREADS=2"
+ExecStart=$VENV_PATH/bin/gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:80 --timeout 300 app:app
 Restart=always
 RestartSec=5
+TimeoutSec=300
 StandardOutput=journal
 StandardError=journal
 
@@ -402,7 +416,8 @@ check_status "Failed to create service"
 # Create required directories for all features
 log_message "Creating required directories..." "$BLUE"
 sudo mkdir -p $BASE_PATH/db
-sudo mkdir -p $BASE_PATH/tmp
+sudo mkdir -p $BASE_PATH/tmp/numba_cache
+sudo mkdir -p $BASE_PATH/tmp/matplotlib
 # Create directories for Python strategy feature
 sudo mkdir -p $BASE_PATH/strategies/scripts
 sudo mkdir -p $BASE_PATH/strategies/examples
