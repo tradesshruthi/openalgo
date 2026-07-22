@@ -13,6 +13,7 @@ instance/
 .DS_Store
 Thumbs.db
 .vscode/
+.superpowers/
 .idea/
 .claude/settings.json
 .claude/settings.local.json
@@ -33,21 +34,28 @@ tmp/
 *.egg-info/
 *.db
 *.duckdb
+*.duckdb.wal
 *.sqlite
 *.log
+*.jsonl
 *.tmp
 checkpoint.txt
 checkpoints.json
+log/ws_proxy_stats.json
 
 
 # Strategy encryption key
 db/strategy_encryption.key
+
+# DB backup files (created by upgrade/rotate_pepper.py and other migrations)
+db/backups/
 
 # CSV Files (except specific data files)
 *.csv
 !symbols.csv
 !all_symbols.csv
 !data/qtyfreeze.csv
+!docs/migration/*.csv
 
 # Environments 
 .env 

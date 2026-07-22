@@ -4,10 +4,11 @@ import os
 import time
 
 import pandas as pd
-from sqlalchemy import Column, Float, Index, Integer, Sequence, String, create_engine, text
+from sqlalchemy import Column, Float, Index, Integer, Sequence, String, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from database.engine_factory import create_db_engine
 from extensions import socketio  # Import SocketIO
 from utils.httpx_client import get_httpx_client
 from utils.logging import get_logger
@@ -17,14 +18,7 @@ logger = get_logger(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL")  # Replace with your database path
 
 # Create engine with optimized settings for SQLite concurrency
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=20,
-    max_overflow=50,
-    pool_timeout=30,
-    pool_recycle=3600,
-    connect_args={"timeout": 30, "check_same_thread": False},
-)
+engine = create_db_engine(DATABASE_URL)
 
 # Enable WAL mode for better concurrent access
 try:
@@ -83,6 +77,7 @@ def init_db():
             f"the column is added. Run: sqlite3 db/openalgo.db "
             f"\"ALTER TABLE symtoken ADD COLUMN contract_value REAL DEFAULT 1.0\" | Error: {e}"
         )
+
 
 
 def delete_symtoken_table():
@@ -241,7 +236,11 @@ def _to_canonical_symbol(delta_symbol: str, instrument_type: str, expiry: str) -
     # .P is the TradingView-standard suffix for perpetuals and avoids colliding
     # with BTCUSDT (Binance BTC/Tether spot pair — a completely different asset).
     if instrument_type == "PERPFUT":
-        return delta_symbol + ".P"
+        return delta_symbol + "FUT"
+
+    # ── Spot: BTC_INR → BTCINR (strip underscores) ─────────────────────────
+    if instrument_type == "SPOT":
+        return delta_symbol.replace("_", "")
 
     # ── All other types (SPREAD, COMBO, IRS, …): keep as-is ────────────────
     return delta_symbol

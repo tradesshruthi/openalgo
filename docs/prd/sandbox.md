@@ -1,10 +1,10 @@
-# PRD: Sandbox - Paper Trading Environment
+# PRD: Sandbox - Sandbox Trading Environment
 
-> **Status:** ✅ Stable - Fully implemented, production-ready
+> **Status:** Implemented for supported analyzer trading/account operations. Analyzer GTT operations remain unsupported and return 501.
 
 ## Overview
 
-Sandbox (Analyzer Mode) is an isolated paper trading environment with simulated capital for testing strategies without risking real money.
+Sandbox (Analyzer Mode) is an isolated sandbox trading environment with simulated capital for testing strategies without risking real money.
 
 ## Problem Statement
 
@@ -16,7 +16,7 @@ Traders need to:
 
 ## Solution
 
-A complete paper trading environment that:
+A complete sandbox trading environment that:
 - Uses real-time market prices from broker
 - Simulates order execution with realistic fills
 - Maintains separate position/order books
@@ -78,7 +78,7 @@ A complete paper trading environment that:
 ### FR6: Execution Engine
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR6.1 | Poll pending orders every 2 seconds | P0 |
+| FR6.1 | Poll pending orders at `order_check_interval`, default 5 seconds | P0 |
 | FR6.2 | Match limit orders against LTP | P0 |
 | FR6.3 | Trigger SL orders when price breached | P1 |
 | FR6.4 | WebSocket price updates (optional) | P2 |

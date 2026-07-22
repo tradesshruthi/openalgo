@@ -508,6 +508,7 @@ sudo rm -rf /var/lib/docker
 | Groww | `groww` | No |
 | IBulls | `ibulls` | Yes |
 | IIFL | `iifl` | Yes |
+| Iiflcapital | `iiflcapital` | No |
 | IndMoney | `indmoney` | No |
 | Jainam XTS | `jainamxts` | Yes |
 | Kotak | `kotak` | No |
@@ -520,6 +521,7 @@ sudo rm -rf /var/lib/docker
 | Samco | `samco` | No |
 | Shoonya | `shoonya` | No |
 | Tradejini | `tradejini` | No |
+| TradeSmart | `tradesmart` | No |
 | Upstox | `upstox` | No |
 | Wisdom Capital | `wisdom` | Yes |
 | Zebu | `zebu` | No |
